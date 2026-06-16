@@ -110,6 +110,12 @@ function switchTab(tabId) {
     };
     document.getElementById('page-title').textContent = titles[tabId] || 'Dashboard';
 
+    // Reset scroll position
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        mainContent.scrollTop = 0;
+    }
+
     if (tabId === 'settings') {
         loadSettings();
     }
