@@ -14,7 +14,6 @@ export const OAUTH_CONFIG = {
   ],
   redirectUri: "http://localhost:3000/oauth-callback"
 };
-
 // Validate required OAuth client secret and client ID at startup
 if (!OAUTH_CONFIG.clientId) {
   console.error('[Auth Error] ANTIGRAVITY_CLIENT_ID environment variable is required');
@@ -29,7 +28,7 @@ if (!OAUTH_CONFIG.clientSecret) {
 
 const ANTIGRAVITY_VERSION = "2.0.0";
 
-const PLATFORMS = ["darwin/x64", "darwin/arm64", "win32/x64", "linux/x64"] as const;
+const PLATFORMS = ["darwin/x64", "darwin/arm64"] as const;
 
 const ARCHITECTURES = ["x64", "arm64"] as const;
 
@@ -38,16 +37,12 @@ const IDE_TYPES = [
 ] as const;
 
 const PLATFORM_NAMES = [
-  "MACOS",
-  "WINDOWS",
-  "LINUX"
+  "MACOS"
 ] as const;
 
 const SDK_CLIENTS = [
   "google-cloud-sdk vscode/1.96.0",
   "google-cloud-sdk vscode/1.95.0",
-  "google-cloud-sdk vscode/1.97.0",
-  "google-cloud-sdk vscode/1.98.0",
 ] as const;
 
 const GEMINI_CLI_USER_AGENTS = [
@@ -63,8 +58,6 @@ const GEMINI_CLI_API_CLIENTS = [
   "gl-node/20.18.0",
   "gl-node/21.7.0",
   "gl-node/22.18.0",
-  "gl-node/23.1.0",
-  "gl-node/23.2.0",
 ] as const;
 
 function randomFrom<T>(arr: readonly T[]): T {
@@ -100,8 +93,8 @@ export function generateFingerprint(email?: string): DeviceFingerprint {
   const platform = randomFrom(PLATFORMS);
   const arch = platform.includes("arm64") ? "arm64" : "x64";
   const ideType = "VSCODE";
-  const platformName = randomFrom(PLATFORM_NAMES);
-
+  const platformName = "MACOS";
+  
   const osVersions = ["14.5", "15.0", "15.1", "15.2"];
   const osVersion = randomFrom(osVersions);
 
@@ -136,25 +129,25 @@ export function getImpersonationHeaders(accessToken: string, fingerprint?: Devic
   const headers: Record<string, string> = {
     "Authorization": `Bearer ${accessToken}`,
     "Content-Type": "application/json",
-    "User-Agent": `Mozilla/5.0 (${fp.platform.includes('win32') ? 'Windows NT 10.0; Win64; x64' : fp.platform.includes('linux') ? 'X11; Linux x86_64' : 'Macintosh; Intel Mac OS X 10_15_7'}) AppleWebKit/537.36 (KHTML, like Gecko) Antigravity/${ANTIGRAVITY_VERSION} Chrome/138.0.7204.235 Electron/37.3.1 Safari/537.36`,
+    "User-Agent": `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Antigravity/${ANTIGRAVITY_VERSION} Chrome/138.0.7204.235 Electron/37.3.1 Safari/537.36`,
     "X-Goog-Api-Client": fp.apiClient,
     "X-Goog-QuotaUser": fp.quotaUser,
     "X-Client-Device-Id": fp.deviceId,
     "Client-Metadata": fp.clientMetadata
-    ? JSON.stringify({
-      ideType: fp.clientMetadata.ideType,
-      platform: fp.clientMetadata.platform,
-      pluginType: fp.clientMetadata.pluginType,
-      osVersion: fp.clientMetadata.osVersion,
-      arch: fp.clientMetadata.arch
-    })
-    : '{"ideType":"VSCODE","platform":"MACOS","pluginType":"GEMINI","osVersion":"15.1","arch":"arm64"}'
+      ? JSON.stringify({ 
+          ideType: fp.clientMetadata.ideType, 
+          platform: fp.clientMetadata.platform, 
+          pluginType: fp.clientMetadata.pluginType,
+          osVersion: fp.clientMetadata.osVersion,
+          arch: fp.clientMetadata.arch
+        })
+      : '{"ideType":"VSCODE","platform":"MACOS","pluginType":"GEMINI","osVersion":"15.1","arch":"arm64"}'
   };
 
   if (model?.toLowerCase().includes("claude") || model?.toLowerCase().includes("anthropic")) {
     headers["anthropic-beta"] = "interleaved-thinking-2025-05-14";
   }
-
+  
   return headers;
 }
 
@@ -171,12 +164,13 @@ export function getGeminiCliHeaders(accessToken: string, fingerprint?: DeviceFin
 
   if (fp.clientMetadata) {
     headers["Client-Metadata"] = Object.entries(fp.clientMetadata)
-    .filter(([_, v]) => v !== undefined)
-    .map(([k, v]) => `${k}=${v}`)
-    .join(",");
+      .filter(([_, v]) => v !== undefined)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(",");
   } else {
-    headers["Client-Metadata"] = "ideType=VSCODE,platform=MACOS,pluginType=GEMINI,osVersion=14.5,arch=arm64";
+     headers["Client-Metadata"] = "ideType=VSCODE,platform=MACOS,pluginType=GEMINI,osVersion=14.5,arch=arm64";
   }
 
   return headers;
 }
+

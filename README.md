@@ -64,14 +64,6 @@ Add the following provider to your `~/.config/opencode/opencode.json` under the 
             "baseURL": "http://localhost:3000/v1"
         },
         "models": {
-            "antigravity-gemini-3.1-pro-low": {
-                "name": "Gemini 3.1 Pro Low (Antigravity)",
-                "limit": { "context": 1048576, "output": 65535 }
-            },
-            "antigravity-gemini-3.1-pro-high": {
-                "name": "Gemini 3.1 Pro High (Antigravity)",
-                "limit": { "context": 1048576, "output": 65535 }
-            },
             "antigravity-gemini-3-pro-low": {
                 "name": "Gemini 3 Pro Low (Antigravity)",
                 "limit": { "context": 1048576, "output": 65535 }
@@ -83,22 +75,6 @@ Add the following provider to your `~/.config/opencode/opencode.json` under the 
             "antigravity-gemini-3-flash": {
                 "name": "Gemini 3 Flash (Antigravity)",
                 "limit": { "context": 1048576, "output": 65536 }
-            },
-            "antigravity-claude-sonnet-4-6": {
-                "name": "Claude Sonnet 4.6 (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-6-thinking-low": {
-                "name": "Claude Sonnet 4.6 Think Low (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-6-thinking-medium": {
-                "name": "Claude Sonnet 4.6 Think Medium (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-6-thinking-high": {
-                "name": "Claude Sonnet 4.6 Think High (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
             },
             "antigravity-claude-sonnet-4-5": {
                 "name": "Claude Sonnet 4.5 (Antigravity)",
@@ -149,13 +125,10 @@ Antigravity Proxy acts as a sophisticated bridge that translates OpenAI-formatte
 - **Hybrid (Default)**: Ranks accounts based on `(Health Score × 2) + (Idle Time × 0.1)`.
 - **Sticky**: Keeps a client session tied to the same account for consistency.
 - **Round-Robin**: Cycles through all available accounts evenly.
-
-
 ## Available Models
 
-The following models are currently available via the proxy:
+The following models are currently verified to work and are available via the proxy:
 - `claude-opus-4-6-thinking`
-- `claude-sonnet-4-6`
 - `gemini-2.5-flash`
 - `gemini-2.5-flash-lite`
 - `gemini-2.5-flash-thinking`
@@ -164,12 +137,18 @@ The following models are currently available via the proxy:
 - `gemini-3-flash-agent`
 - `gemini-3.1-flash-image`
 - `gemini-3.1-flash-lite`
-- `gemini-3.1-pro-high`
-- `gemini-3.1-pro-low`
 - `gemini-3.5-flash-extra-low`
 - `gemini-3.5-flash-low`
 - `gemini-pro-agent`
 - `gpt-oss-120b-medium`
+
+## Responses API support
+
+Antigravity Proxy now supports the new OpenAI Responses API. You can use it by sending POST requests to:
+```
+POST http://localhost:3000/v1/responses
+```
+This maps input, instructions, and stream options to their corresponding chat completions structure internally and translates the responses back seamlessly.
 
 ## Security Notes
 - **Safety Filters**: Controlled via `SAFETY_THRESHOLD` (default: `BLOCK_NONE`).
