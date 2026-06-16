@@ -95,6 +95,8 @@ export interface FeaturesConfig {
   jitterMaxMs: number;
   /** Default fallback Google Cloud Project ID */
   defaultProjectId?: string;
+  /** Strip Antigravity specific context tags to save tokens */
+  sanitizeAntigravityPrompts: boolean;
 }
 
 export interface SchedulingConfig {

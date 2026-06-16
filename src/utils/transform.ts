@@ -103,43 +103,34 @@ export function transformToGoogleBody(
         if (googleModel.includes("claude")) {
             googleModel = baseModel;
             if (googleModel === "claude-opus-4-6") googleModel = "claude-opus-4-6-thinking";
-            if (googleModel === "claude-sonnet-4-6") googleModel = "claude-sonnet-4-6-thinking";
+            if (googleModel === "claude-sonnet-4-6-thinking" || googleModel.includes("claude-3-7-sonnet") || googleModel.includes("claude-3.7-sonnet")) googleModel = "claude-sonnet-4-6";
             if (googleModel === "claude-sonnet-4-5") googleModel = "claude-sonnet-4-5-thinking";
         }
 
     const nativelySupported = [
       "claude-sonnet-4-6",
-      "claude-sonnet-4-6-thinking",
-      "claude-sonnet-4-5", 
-      "claude-sonnet-4-5-thinking", 
       "claude-opus-4-6-thinking",
-      "gemini-3.1-pro-high",
-      "gemini-3.1-pro-low",
-      "gemini-3.1-pro",
-      "gemini-3.1-pro-preview",
       "gemini-3-flash",
-      "gemini-3-pro-high", 
-      "gemini-3-pro-low",
-      "gemini-3-pro",
-      "gemini-2.5-pro",
+      "gemini-3.5-flash-extra-low",
       "gemini-2.5-flash",
       "gemini-2.5-flash-lite",
+      "gemini-3-flash-agent",
+      "gemini-3.1-pro-low",
+      "gemini-pro-agent",
+      "gemini-3.1-pro-high",
       "gemini-2.5-flash-thinking",
-      "gemini-3-pro-preview",
-      "gemini-3-flash-preview"
+      "gemini-2.5-pro",
+      "gemini-3.5-flash-low",
+      "gemini-3.1-flash-lite",
+      "gemini-3.1-flash-image",
+      "gpt-oss-120b-medium"
   ];
   
   const isNative = (nativelySupported.includes(googleModel) || nativelySupported.includes(baseModel) || CLAUDE_MODEL_REGISTRY.includes(googleModel) || CLAUDE_MODEL_REGISTRY.includes(baseModel) || googleModel.startsWith("claude-3-"));
 
   if (isCli) {
       if (!googleModel.includes("claude")) {
-          // Standardize Gemini 3 CLI models to use -preview suffix
-          if (googleModel.includes("gemini-3")) {
-              googleModel = baseModel; // Strip tiers
-              if (!googleModel.endsWith("-preview")) {
-                  googleModel = `${googleModel}-preview`;
-              }
-          } else if (googleModel.includes("gpt")) {
+          if (googleModel.includes("gpt")) {
               if (googleModel.includes("thinking")) {
                    googleModel = "gemini-2.0-flash-thinking-exp";
               } else {
@@ -150,8 +141,9 @@ export function transformToGoogleBody(
           }
        } else {
            googleModel = baseModel;
-           if (googleModel === "claude-sonnet-4-6") googleModel = "claude-sonnet-4-6-thinking";
-           if (googleModel === "claude-sonnet-4-5") googleModel = "claude-sonnet-4-5-thinking";
+           if (googleModel === "claude-sonnet-4-6-thinking" || googleModel.includes("claude-3-7-sonnet") || googleModel.includes("claude-3.7-sonnet")) {
+               googleModel = "claude-sonnet-4-6";
+           }
        }
    } else {
        if (googleModel.endsWith("-preview")) {
@@ -160,12 +152,16 @@ export function transformToGoogleBody(
        
        if (isNative) {
            if (baseModel.includes("gemini-3.1-pro")) {
-               googleModel = `gemini-3.1-pro-${extractedTier || "high"}`;
+               const tier = extractedTier || "high";
+               googleModel = tier === "high" ? "gemini-pro-agent" : `gemini-3.1-pro-${tier}`;
            } else if (baseModel.includes("gemini-3-pro")) {
                // Respect extracted tier for Gemini 3 Pro, fallback to high
                googleModel = `gemini-3-pro-${extractedTier || "high"}`;
            } else if (baseModel.includes("gemini-3.5-flash")) {
-               googleModel = `gemini-3.5-flash-${extractedTier || "high"}`;
+               const tier = extractedTier || "high";
+               if (tier === "high") googleModel = "gemini-3-flash-agent";
+               else if (tier === "medium") googleModel = "gemini-3.5-flash-low";
+               else googleModel = `gemini-3.5-flash-${tier}`;
            } else if (baseModel.includes("gemini-3-flash")) {
                googleModel = "gemini-3-flash";
            } else {
@@ -175,11 +171,8 @@ export function transformToGoogleBody(
              if (googleModel === "claude-opus-4-6" || googleModel === "antigravity-claude-opus-4-6") {
                  googleModel = "claude-opus-4-6-thinking";
              }
-           if (googleModel === "claude-sonnet-4-6" || googleModel === "antigravity-claude-sonnet-4-6") {
-               googleModel = "claude-sonnet-4-6-thinking";
-           }
-           if (googleModel === "claude-sonnet-4-5" || googleModel === "antigravity-claude-sonnet-4-5") {
-               googleModel = "claude-sonnet-4-5-thinking";
+           if (googleModel === "claude-sonnet-4-6" || googleModel === "antigravity-claude-sonnet-4-6" || googleModel === "claude-sonnet-4-6-thinking" || googleModel.includes("claude-3-7-sonnet")) {
+               googleModel = "claude-sonnet-4-6";
            }
        }
    }
@@ -203,12 +196,22 @@ export function transformToGoogleBody(
         responseObj = { result: responseObj };
       }
 
+      let toolCallId = msg.tool_call_id;
+      if (googleModel.includes("claude") && toolCallId?.startsWith("sig:")) {
+          const idParts = toolCallId.split(":");
+          if (idParts.length >= 3) {
+              toolCallId = idParts.slice(2).join(":");
+          }
+      }
+
       const funcResp: any = {
         name: msg.name || "function_result",
         response: responseObj
       };
       
-      if (googleModel.includes("claude") || googleModel.includes("gemini-3")) {
+      if (googleModel.includes("claude")) {
+          funcResp.id = toolCallId;
+      } else if (googleModel.includes("gemini-3")) {
           funcResp.id = msg.tool_call_id;
       }
 
@@ -236,7 +239,7 @@ export function transformToGoogleBody(
               } else if (part.type === "image_url" && part.image_url?.url) {
                 const url = part.image_url.url;
                 if (url.startsWith("data:")) {
-                  const match = url.match(/^data:([^;]+);base64,(.+)$/);
+                  const match = url.match(/^data:([^;]+)(?:;[^,]+)*,*(?:base64,)?(.+)$/);
                   if (match) {
                     parts.push({
                       inlineData: {
@@ -270,7 +273,16 @@ export function transformToGoogleBody(
               args: typeof tc.function.arguments === 'string' ? JSON.parse(tc.function.arguments || "{}") : tc.function.arguments
             };
             
-            if (googleModel.includes("claude") || googleModel.includes("gemini-3")) {
+            if (googleModel.includes("claude")) {
+                let cleanId = tc.id || "";
+                if (cleanId.startsWith("sig:")) {
+                    const idParts = cleanId.split(":");
+                    if (idParts.length >= 3) {
+                        cleanId = idParts.slice(2).join(":");
+                    }
+                }
+                funcCall.id = cleanId;
+            } else if (googleModel.includes("gemini-3")) {
                 funcCall.id = tc.id;
             }
 
@@ -331,17 +343,38 @@ You are pair programming with a USER to solve their coding task. The task may re
 `;
 
   let systemInstruction: any = undefined;
-  if (!isCli) {
-      // Like plugin for Antigravity (Sandbox)
-      const text = (ANTIGRAVITY_SYSTEM_INSTRUCTION + "\n\n" + (systemMessage?.content || "")).trim();
+  if (systemMessage) {
+      let text = systemMessage.content;
+      if (proxyConfig.features.sanitizeAntigravityPrompts) {
+          const tagsToStrip = [
+              "identity", "user_information", "web_application_development", 
+              "ephemeral_message", "subagents", "messaging", 
+              "conversation_transcript", "artifacts", "slash_commands", 
+              "guidelines", "communication_style"
+          ];
+          for (const tag of tagsToStrip) {
+               const regex = new RegExp(`<${tag}>[\\s\\S]*?<\\/${tag}>\\n*`, "g");
+               text = text.replace(regex, "");
+          }
+      }
+      
+      if (!isCli && !proxyConfig.features.sanitizeAntigravityPrompts) {
+          // Like plugin for Antigravity (Sandbox)
+          text = (ANTIGRAVITY_SYSTEM_INSTRUCTION + "\n\n" + text).trim();
+          systemInstruction = {
+              role: "user",
+              parts: [{ text }]
+          };
+      } else {
+          // Normal system instruction for CLI
+          systemInstruction = {
+              parts: [{ text: text }]
+          };
+      }
+  } else if (!isCli && !proxyConfig.features.sanitizeAntigravityPrompts) {
       systemInstruction = {
           role: "user",
-          parts: [{ text }]
-      };
-  } else if (systemMessage) {
-      // Normal system instruction for CLI
-      systemInstruction = {
-          parts: [{ text: systemMessage.content }]
+          parts: [{ text: ANTIGRAVITY_SYSTEM_INSTRUCTION.trim() }]
       };
   }
 
@@ -364,43 +397,62 @@ You are pair programming with a USER to solve their coding task. The task may re
     sessionId: sessionId || crypto.randomUUID()
   };
 
-  if (isThinkingModel || googleModel.includes("gemini-3")) {
+  const isThinkingEligible = isThinkingModel || googleModel.includes("gemini-3") || googleModel.includes("agent") || googleModel.includes("gemini-2.0-flash-thinking-exp");
+  if (isThinkingEligible) {
     googleRequest.generationConfig.thinkingConfig = {
       thinkingBudget: thinkingBudget || 16000
     };
-    if (googleModel.includes("claude") || isCli) {
-      googleRequest.generationConfig.thinkingConfig.includeThoughts = true;
-    }
-    
+    googleRequest.generationConfig.thinkingConfig.includeThoughts = true;
+
     if (googleModel.includes("gemini-3") && isCli) {
         googleRequest.generationConfig.thinkingConfig.thinkingLevel = (extractedTier || "low").toLowerCase();
     }
   }
 
-  if (openaiBody.tools) {
+  if (openaiBody.tools && Array.isArray(openaiBody.tools)) {
     const sanitize = proxyConfig.features.sanitizeToolNames;
-    googleRequest.tools = [{
-      functionDeclarations: openaiBody.tools.map((t: any) => {
-        const cleanParams = cleanJSONSchemaForAntigravity(t.function.parameters || { type: "object", properties: {} }, aggressive);
+    const functionDeclarations = [];
+    const otherTools = [];
+
+    for (const t of openaiBody.tools) {
+      if (t.type === "function" || t.function) {
+        const fn = t.function || t;
+        const cleanParams = cleanJSONSchemaForAntigravity(fn.parameters || { type: "object", properties: {} }, aggressive);
         
-        let funcName = t.function.name;
+        let funcName = fn.name;
         if (sanitize) {
           funcName = sanitizeFunctionName(funcName);
         }
 
-        let description = t.function.description || "";
+        let description = fn.description || "";
         const paramNames = Object.keys(cleanParams.properties || {}).filter(k => k !== "_placeholder");
         if (paramNames.length > 0) {
           description += ` [Parameters: ${paramNames.join(", ")}]`;
         }
 
-        return {
+        functionDeclarations.push({
           name: funcName,
           description: description,
           parameters: cleanParams
-        };
-      })
-    }];
+        });
+      } else {
+        if (t.googleSearch || t.googleSearchRetrieval || t.codeExecution) {
+          otherTools.push(t);
+        } else if (t.type) {
+           if (t.type === "googleSearch" || t.type === "googleSearchRetrieval" || t.type === "codeExecution") {
+               otherTools.push({ [t.type]: {} });
+           }
+        }
+      }
+    }
+
+    googleRequest.tools = [];
+    if (functionDeclarations.length > 0) {
+        googleRequest.tools.push({ functionDeclarations });
+    }
+    if (otherTools.length > 0) {
+        googleRequest.tools.push(...otherTools);
+    }
     
     if (googleModel.includes("claude")) {
         googleRequest.toolConfig = {
@@ -424,6 +476,19 @@ You are pair programming with a USER to solve their coding task. The task may re
     googleRequest.tools.push(groundingTool);
   }
 
+  if (googleRequest.tools && googleRequest.tools.length === 0) {
+      delete googleRequest.tools;
+  }
+
+  if (googleRequest.tools && googleRequest.tools.some((t: any) => t.functionDeclarations)) {
+      const hasBuiltIn = googleRequest.tools.some((t: any) => t.googleSearch || t.googleSearchRetrieval || t.codeExecution);
+      if (hasBuiltIn) {
+          if (!googleRequest.toolConfig) googleRequest.toolConfig = {};
+          googleRequest.toolConfig.include_server_side_tool_invocations = true;
+          googleRequest.toolConfig.includeServerSideToolInvocations = true;
+      }
+  }
+
   return {
     project: projectId,
     model: googleModel,
@@ -434,7 +499,7 @@ You are pair programming with a USER to solve their coding task. The task may re
   };
 }
 
-export function transformGoogleEventToOpenAI(googleData: any, model: string, requestId?: string, hasPriorToolCalls: boolean = false): any {
+export function transformGoogleEventToOpenAI(googleData: any, model: string, requestId?: string, hasPriorToolCalls: boolean = false, state?: { imagesAppended: Set<string> }): any {
   const data = googleData.response || googleData;
   const requestIdActual = requestId || "chatcmpl-" + Math.random().toString(36).substring(7);
   
@@ -516,6 +581,15 @@ export function transformGoogleEventToOpenAI(googleData: any, model: string, req
       });
       if (sig) extractedSignature = sig;
     }
+
+    if (part.inlineData && part.inlineData.mimeType && part.inlineData.data) {
+        const dataHash = part.inlineData.data.substring(0, 100);
+        if (!state || !state.imagesAppended.has(dataHash)) {
+            const imgMarkdown = `\n![Generated Image](data:${part.inlineData.mimeType};base64,${part.inlineData.data})\n`;
+            delta.content = (delta.content || "") + imgMarkdown;
+            if (state) state.imagesAppended.add(dataHash);
+        }
+    }
   }
 
   if (toolCalls.length > 0) {
@@ -560,6 +634,7 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
   const encoder = new TextEncoder();
   let buffer = "";
   let currentHasPriorToolCalls = hasPriorToolCalls;
+  const state = { imagesAppended: new Set<string>() };
 
   return new TransformStream({
     transform(chunk, controller) {
@@ -578,7 +653,7 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
           }
           try {
             const googleEvent = JSON.parse(dataStr);
-            const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls);
+            const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls, state);
             
             if (openaiEvent) {
               if (sessionId && openaiEvent._signature && openaiEvent._thought) {
@@ -598,7 +673,37 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
                 }
                 
                 const { _signature, _thought, ...cleanEvent } = openaiEvent;
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify(cleanEvent)}\n\n`));
+                
+                const contentStr = delta?.content;
+                if (contentStr && contentStr.length > 65536) {
+                    let offset = 0;
+                    const originalFinishReason = choice?.finish_reason;
+                    const originalToolCalls = delta?.tool_calls;
+                    const originalReasoning = delta?.reasoning_content;
+                    
+                    while (offset < contentStr.length) {
+                        const chunkStr = contentStr.substring(offset, offset + 65536);
+                        const chunkEvent = JSON.parse(JSON.stringify(cleanEvent));
+                        
+                        chunkEvent.choices[0].delta = { content: chunkStr };
+                        
+                        if (offset === 0) {
+                            if (originalToolCalls) chunkEvent.choices[0].delta.tool_calls = originalToolCalls;
+                            if (originalReasoning) chunkEvent.choices[0].delta.reasoning_content = originalReasoning;
+                        }
+                        
+                        if (offset + 65536 < contentStr.length) {
+                            delete chunkEvent.choices[0].finish_reason;
+                        } else {
+                            if (originalFinishReason) chunkEvent.choices[0].finish_reason = originalFinishReason;
+                        }
+                        
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkEvent)}\n\n`));
+                        offset += 65536;
+                    }
+                } else {
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(cleanEvent)}\n\n`));
+                }
               }
             }
           } catch (e) {
@@ -613,7 +718,7 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
         if (dataStr !== "[DONE]") {
           try {
             const googleEvent = JSON.parse(dataStr);
-            const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls);
+            const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls, state);
             if (openaiEvent) {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify(openaiEvent)}\n\n`));
             }

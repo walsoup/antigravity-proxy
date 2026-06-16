@@ -4,7 +4,7 @@ import { getGeminiCliHeaders } from "../utils/headers";
 console.log("Initializing...");
 await initManager();
 const accounts = getAccounts();
-const account = accounts.find(a => a.email === "frieserpaldi@gmail.com");
+const account = accounts[0];
 
 if (!account || !account.accessToken) {
     console.error("Account not found");
@@ -22,11 +22,11 @@ const baseBody = {
 };
 
 const modelsToTest = [
-    "gemini-2.5-pro",
-    "gemini-3.1-pro",
-    "claude-sonnet-4-6",
-    "claude-sonnet-4-5",
-    "claude-opus-4-6-thinking"
+    "gemini-3.1-pro-high",
+    "claude-sonnet-4-6-thinking",
+    "claude-3-7-sonnet-20250219",
+    "claude-3-5-sonnet-20241022",
+    "claude-3-5-sonnet-v2@20241022"
 ];
 
 for (const m of modelsToTest) {

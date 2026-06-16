@@ -49,7 +49,7 @@ To use **Claude Code** with Antigravity Proxy, point the API base URL to your lo
 export CLAUDE_CODE_API_BASE="http://localhost:3000/v1"
 
 # Run Claude specifying an Antigravity model
-claude --model antigravity-claude-sonnet-4-5
+claude --model antigravity-claude-sonnet-4-6
 ```
 
 ### OpenCode Configuration
@@ -76,20 +76,20 @@ Add the following provider to your `~/.config/opencode/opencode.json` under the 
                 "name": "Gemini 3 Flash (Antigravity)",
                 "limit": { "context": 1048576, "output": 65536 }
             },
-            "antigravity-claude-sonnet-4-5": {
-                "name": "Claude Sonnet 4.5 (Antigravity)",
+            "antigravity-claude-sonnet-4-6": {
+                "name": "Claude Sonnet 4.6 (Antigravity)",
                 "limit": { "context": 200000, "output": 64000 }
             },
-            "antigravity-claude-sonnet-4-5-thinking-low": {
-                "name": "Claude Sonnet 4.5 Think Low (Antigravity)",
+            "antigravity-claude-sonnet-4-6-thinking-low": {
+                "name": "Claude Sonnet 4.6 Think Low (Antigravity)",
                 "limit": { "context": 200000, "output": 64000 }
             },
-            "antigravity-claude-sonnet-4-5-thinking-medium": {
-                "name": "Claude Sonnet 4.5 Think Medium (Antigravity)",
+            "antigravity-claude-sonnet-4-6-thinking-medium": {
+                "name": "Claude Sonnet 4.6 Think Medium (Antigravity)",
                 "limit": { "context": 200000, "output": 64000 }
             },
-            "antigravity-claude-sonnet-4-5-thinking-high": {
-                "name": "Claude Sonnet 4.5 Think High (Antigravity)",
+            "antigravity-claude-sonnet-4-6-thinking-high": {
+                "name": "Claude Sonnet 4.6 Think High (Antigravity)",
                 "limit": { "context": 200000, "output": 64000 }
             },
             "antigravity-claude-opus-4-6-thinking-low": {
@@ -128,18 +128,21 @@ Antigravity Proxy acts as a sophisticated bridge that translates OpenAI-formatte
 ## Available Models
 
 The following models are currently verified to work and are available via the proxy:
+- `claude-sonnet-4-6`
 - `claude-opus-4-6-thinking`
+- `gemini-3-flash`
+- `gemini-3.5-flash-extra-low`
 - `gemini-2.5-flash`
 - `gemini-2.5-flash-lite`
+- `gemini-3-flash-agent`
+- `gemini-3.1-pro-low`
+- `gemini-pro-agent`
+- `gemini-3.1-pro-high`
 - `gemini-2.5-flash-thinking`
 - `gemini-2.5-pro`
-- `gemini-3-flash`
-- `gemini-3-flash-agent`
-- `gemini-3.1-flash-image`
-- `gemini-3.1-flash-lite`
-- `gemini-3.5-flash-extra-low`
 - `gemini-3.5-flash-low`
-- `gemini-pro-agent`
+- `gemini-3.1-flash-lite`
+- `gemini-3.1-flash-image`
 - `gpt-oss-120b-medium`
 
 ## Responses API support

@@ -86,7 +86,8 @@ const DEFAULT_CONFIG: ProxyConfig = {
     softQuotaThresholdPercent: 90,
     jitterEnabled: true,
     jitterMinMs: 50,
-    jitterMaxMs: 300
+    jitterMaxMs: 300,
+    sanitizeAntigravityPrompts: false
   },
   scheduling: {
     mode: 'cache_first',

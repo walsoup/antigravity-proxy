@@ -284,6 +284,15 @@ function calculateFamilies() {
                     if (!familyQuotas[fam]) familyQuotas[fam] = { sum: 0, count: 0 };
                     familyQuotas[fam].sum += q.remainingFraction;
                     familyQuotas[fam].count++;
+
+                    if (q.resetTime) {
+                        const resetMs = new Date(q.resetTime).getTime();
+                        if (resetMs > Date.now()) {
+                            if (!families[fam].nextRefresh || resetMs < families[fam].nextRefresh) {
+                                families[fam].nextRefresh = resetMs;
+                            }
+                        }
+                    }
                 }
             });
         } else {
@@ -416,6 +425,19 @@ function renderDashboard() {
     Object.entries(state.families).forEach(([name, data]) => {
         const healthClass = getHealthClass(data.health);
         
+        let refreshText = 'N/A';
+        if (data.nextRefresh) {
+            const ms = data.nextRefresh - Date.now();
+            if (ms > 0) {
+                const mins = Math.ceil(ms / 60000);
+                const hrs = Math.floor(mins / 60);
+                const remainingMins = mins % 60;
+                refreshText = hrs > 0 ? `${hrs}h ${remainingMins}m` : `${mins}m`;
+            } else {
+                refreshText = 'Refreshing...';
+            }
+        }
+
         const card = document.createElement('div');
         card.className = 'glass-card family-card';
         card.innerHTML = `
@@ -430,6 +452,10 @@ function renderDashboard() {
             <div class="metric-row">
                 <span class="text-secondary">Current Queue</span>
                 <span class="metric-value">${data.queueSize} reqs</span>
+            </div>
+            <div class="metric-row">
+                <span class="text-secondary">Next Refresh</span>
+                <span class="metric-value" style="color: var(--accent-primary)">${refreshText}</span>
             </div>
             <div class="progress-bar-bg">
                 <div class="progress-bar-fill" style="width: ${data.health}%; background: var(--status-${healthClass === 'good' ? 'healthy' : healthClass === 'warn' ? 'degraded' : 'dead'})"></div>
@@ -652,6 +678,18 @@ async function resetAllAccounts() {
     }
 }
 
+async function purgeSystemState() {
+    if (!confirm('Are you sure you want to PURGE ALL STATE? This wipes history, metrics, active caches, cooldowns, and all temporary routing logic, leaving only the accounts themselves intact. Use this if the proxy is behaving erratically.')) return;
+    try {
+        await apiFetch('/api/accounts/purge-state', { method: 'POST' });
+        addLog('System state totally purged successfully', 'info');
+        showToast('System state purged');
+    } catch (e) {
+        addLog(`Purge failed: ${e.message}`, 'error');
+        showToast(`Purge failed: ${e.message}`, true);
+    }
+}
+
 async function resetAccount(email) {
     try {
         await apiFetch(`/api/accounts/${email}/reset`, { method: 'POST' });
@@ -759,6 +797,7 @@ async function loadSettings() {
             document.getElementById('settings-google-grounding').checked = config.features?.googleSearchGrounding ?? false;
             document.getElementById('settings-keep-thinking').checked = config.features?.keepThinking ?? false;
             document.getElementById('settings-sanitize-tools').checked = config.features?.sanitizeToolNames ?? false;
+            document.getElementById('settings-sanitize-antigravity').checked = config.features?.sanitizeAntigravityPrompts ?? false;
             document.getElementById('settings-security-password').value = config.security?.password || '';
             
             // Populate Alerting
@@ -834,6 +873,7 @@ async function saveSettings(event) {
             googleSearchGrounding: document.getElementById('settings-google-grounding').checked,
             keepThinking: document.getElementById('settings-keep-thinking').checked,
             sanitizeToolNames: document.getElementById('settings-sanitize-tools').checked,
+            sanitizeAntigravityPrompts: document.getElementById('settings-sanitize-antigravity').checked,
             groundingMode: state.config.features?.groundingMode || 'auto',
             pidOffsetEnabled: state.config.features?.pidOffsetEnabled ?? true,
             softQuotaThresholdPercent: state.config.features?.softQuotaThresholdPercent ?? 100,

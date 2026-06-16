@@ -6,7 +6,7 @@ await loadProxyConfig();
 const pkg = await Bun.file("package.json").json();
 const APP_VERSION = pkg.version || "0.0.0";
 
-import { initManager, getBestAccount, updateAccountUsage, addAccount, getAccounts, removeAccount, getStrategy, setStrategy, saveAccounts, emitAccountFlash, eventBus, getEarliestReset, markCooldown, ensureFingerprint, regenerateFingerprint, getCooldowns, resetAccount, flagAccountChallenge, flagModelUnsupported, updateAccountProject, getFamilyName, resetAllCooldowns } from "./auth/manager";
+import { initManager, getBestAccount, updateAccountUsage, addAccount, getAccounts, removeAccount, getStrategy, setStrategy, saveAccounts, emitAccountFlash, eventBus, getEarliestReset, markCooldown, ensureFingerprint, regenerateFingerprint, getCooldowns, resetAccount, flagAccountChallenge, flagModelUnsupported, updateAccountProject, getFamilyName, resetAllCooldowns, clearAllCapabilities } from "./auth/manager";
 import { type SelectionStrategy, type AntigravityAccount } from "./auth/types";
 import { generateAuthUrl, exchangeCode, getUserEmail, getProjectId } from "./auth/oauth";
 import { transformToGoogleBody, transformGoogleEventToOpenAI, createOpenAIStreamTransformer, getOriginalToolName } from "./utils/transform";
@@ -45,7 +45,10 @@ await initManager();
 
 const proxyConfig = getProxyConfig();
 
-setInterval(refreshAllQuotas, proxyConfig.quota.refreshIntervalMs);
+setInterval(() => {
+    refreshAllQuotas();
+    clearAllCapabilities();
+}, proxyConfig.quota.refreshIntervalMs);
 // Initial quota refresh on startup
 refreshAllQuotas();
 
@@ -74,7 +77,7 @@ const server = Bun.serve({
     }
 
     const proxyConfig = getProxyConfig();
-    const requiredPassword = process.env.PROXY_PASSWORD || proxyConfig.security?.password;
+    const requiredPassword = process.env.PROXY_PASSWORD || (proxyConfig as any).security?.password;
 
     if (requiredPassword) {
         const isProxyPath = cleanPath.startsWith("/v1/") || cleanPath === "/models";
@@ -105,7 +108,10 @@ const server = Bun.serve({
         }
     }
     if (cleanPath === "/oauth/start") {
-      return Response.redirect(generateAuthUrl());
+      const host = req.headers.get("host") || "localhost:3000";
+      const proto = req.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+      const redirectUri = `${proto}://${host}/oauth-callback`;
+      return Response.redirect(generateAuthUrl(redirectUri));
     }
 
     if (cleanPath === "/v1/models" || cleanPath === "/models") {
@@ -417,7 +423,11 @@ const server = Bun.serve({
       
       // GPT and Claude models are Sandbox-preferred. Explicit antigravity- models are also Sandbox-only.
       const isExplicitAntigravity = modelLower.includes("antigravity-");
-      const isSandboxOnlyModel = modelLower.includes("gpt") || isExplicitAntigravity;
+      const isSandboxOnlyModel = modelLower.includes("gpt") || isExplicitAntigravity ||
+          modelLower.includes("gemini-3-flash") ||
+          modelLower.includes("gemini-3.5-flash") ||
+          modelLower.includes("gemini-2.") ||
+          modelLower.includes("image");
       const isCliOnlyModel = false;
       const CLAUDE_REGIONS = ["us-central1", "us-east5", "europe-west1"];
       
@@ -473,6 +483,7 @@ const server = Bun.serve({
 
             const SANDBOX_ENDPOINTS = Array.isArray(config.endpoints.sandbox) ? config.endpoints.sandbox : [config.endpoints.sandbox];
             const CLI_ENDPOINTS = Array.isArray(config.endpoints.cli) ? config.endpoints.cli : [config.endpoints.cli];
+
             
             let GOOGLE_URL: string;
             if (useCliPool) {
@@ -774,6 +785,26 @@ const server = Bun.serve({
           return lastErrorResponse;
       }
 
+      const allAccounts = getAccounts();
+      const isModelUnsupported = allAccounts.length > 0 && allAccounts.every(a => a.capabilities?.[openaiBody.model] === false);
+      if (isModelUnsupported) {
+          return new Response(JSON.stringify({
+              error: { 
+                  message: `Model Not Found: The model '${openaiBody.model}' is disabled or not found on the backend for all available accounts.`,
+                  type: "model_not_found",
+                  code: "404",
+                  attempts: attemptLogs
+              }
+          }), {
+              status: 404,
+              headers: { 
+                  "Content-Type": "application/json",
+                  "Access-Control-Allow-Origin": "*",
+                  "X-Antigravity-Attempts": attempts.toString()
+              }
+          });
+      }
+
       const resetTime = getEarliestReset(useCliPool ? "cli" : "sandbox");
       const resetMsg = resetTime ? ` Next reset in ${resetTime}.` : "";
       return new Response(JSON.stringify({ 
@@ -896,6 +927,15 @@ const server = Bun.serve({
         }
     }
 
+    if (url.pathname === "/api/accounts/clear-capabilities" && req.method === "POST") {
+        clearAllCapabilities();
+        return new Response(JSON.stringify({ success: true }), {
+            headers: { 
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*" 
+            }
+        });
+    }
     if (url.pathname === "/api/accounts/reset-all" && req.method === "POST") {
         const accounts = getAccounts();
         for (const acc of accounts) {
@@ -967,12 +1007,22 @@ const server = Bun.serve({
         return new Response("OK", { status: 200 });
     }
 
+    if (url.pathname === "/api/accounts/purge-state" && req.method === "POST") {
+        const { purgeSystemState } = await import("./auth/manager");
+        purgeSystemState();
+        return new Response("OK", { status: 200 });
+    }
+
     if (url.pathname === "/oauth-callback") {
+      const host = req.headers.get("host") || "localhost:3000";
+      const proto = req.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+      const redirectUri = `${proto}://${host}/oauth-callback`;
+
       const code = url.searchParams.get("code");
       if (!code) return new Response("Missing code", { status: 400 });
 
       try {
-          const tokenRes = await exchangeCode(code);
+          const tokenRes = await exchangeCode(code, redirectUri);
           const email = await getUserEmail(tokenRes.access_token);
           const projectId = await getProjectId(tokenRes.access_token);
 

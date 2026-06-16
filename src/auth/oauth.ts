@@ -9,14 +9,14 @@ function generateVerifier(): string {
   return Array.from(array, c => c.toString(16).padStart(2, '0')).join('');
 }
 
-export function generateAuthUrl(): string {
+export function generateAuthUrl(dynamicRedirectUri?: string): string {
   currentVerifier = generateVerifier();
   let challenge = new Bun.CryptoHasher("sha256").update(currentVerifier).digest("base64");
   challenge = challenge.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   
   const params = new URLSearchParams({
     client_id: OAUTH_CONFIG.clientId,
-    redirect_uri: OAUTH_CONFIG.redirectUri,
+    redirect_uri: dynamicRedirectUri || OAUTH_CONFIG.redirectUri,
     response_type: "code",
     scope: OAUTH_CONFIG.scopes.join(" "),
     access_type: "offline",
@@ -27,11 +27,11 @@ export function generateAuthUrl(): string {
   return `${OAUTH_CONFIG.authUri}?${params.toString()}`;
 }
 
-export async function exchangeCode(code: string): Promise<GoogleTokenResponse> {
+export async function exchangeCode(code: string, dynamicRedirectUri?: string): Promise<GoogleTokenResponse> {
   const params = new URLSearchParams({
     client_id: OAUTH_CONFIG.clientId,
     client_secret: OAUTH_CONFIG.clientSecret, // REQUIRED for this Client ID
-    redirect_uri: OAUTH_CONFIG.redirectUri,
+    redirect_uri: dynamicRedirectUri || OAUTH_CONFIG.redirectUri,
     grant_type: "authorization_code",
     code: code,
     code_verifier: currentVerifier

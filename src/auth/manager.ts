@@ -166,6 +166,24 @@ function getPidOffset(): number {
   return process.pid % Math.max(accounts.length, 1);
 }
 
+export function purgeSystemState() {
+  clientStickyMap.clear();
+  cooldownMap.clear();
+  ongoingRefreshes.clear();
+
+  for (const acc of accounts) {
+      acc.cooldowns = {};
+      acc.modelScores = {};
+      acc.consecutiveFailures = 0;
+      acc.tokenUsage = 0;
+      acc.history = [];
+      acc.healthScore = 100;
+  }
+
+  clearAllCapabilities();
+  saveConfig({ accounts, strategy: currentStrategy });
+}
+
 export async function getBestAccount(pool?: 'cli' | 'sandbox', model?: string, clientId?: string, excludeEmails: string[] = [], skipRescue: boolean = false): Promise<AntigravityAccount | null> {
   if (accounts.length === 0) return null;
   const now = Date.now();
@@ -346,6 +364,16 @@ export function flagModelUnsupported(email: string, model: string) {
         account.capabilities[model] = false;
         saveAccounts(accounts);
     }
+}
+
+export function clearAllCapabilities() {
+    for (const account of accounts) {
+        if (account.capabilities) {
+            delete account.capabilities;
+        }
+    }
+    saveAccounts(accounts);
+    console.log("[Manager] Cleared capabilities cache for all accounts.");
 }
 
 export async function resetAccount(email: string) {
