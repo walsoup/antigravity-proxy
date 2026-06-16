@@ -237,7 +237,11 @@ export function transformToGoogleBody(
           if (Array.isArray(msg.content)) {
             for (const part of msg.content) {
               if (part.type === "text") {
-                parts.push({ text: part.text });
+                let textContent = part.text;
+                if (typeof textContent === "string") {
+                    textContent = textContent.replace(/!\[.*?\]\(data:image\/[^;]+;base64,[a-zA-Z0-9+/=]+\)/g, "[Image Removed]");
+                }
+                parts.push({ text: textContent });
               } else if (part.type === "image_url" && part.image_url?.url) {
                 const url = part.image_url.url;
                 if (url.startsWith("data:")) {
@@ -254,7 +258,11 @@ export function transformToGoogleBody(
               }
             }
           } else {
-             parts.push({ text: msg.content });
+             let textContent = msg.content;
+             if (typeof textContent === "string") {
+                 textContent = textContent.replace(/!\[.*?\]\(data:image\/[^;]+;base64,[a-zA-Z0-9+/=]+\)/g, "[Image Removed]");
+             }
+             parts.push({ text: textContent });
           }
       }
 
