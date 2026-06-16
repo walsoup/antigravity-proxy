@@ -150,7 +150,9 @@ export function transformToGoogleBody(
            googleModel = googleModel.replace("-preview", "");
        }
        
-       if (isNative) {
+       if (!isNative) {
+           googleModel = "claude-sonnet-4-6";
+       } else {
            if (baseModel.includes("gemini-3.1-pro")) {
                const tier = extractedTier || "high";
                googleModel = tier === "high" ? "gemini-pro-agent" : `gemini-3.1-pro-${tier}`;
