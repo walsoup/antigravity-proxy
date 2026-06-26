@@ -126,7 +126,17 @@ export function transformToGoogleBody(
       "gpt-oss-120b-medium"
   ];
   
-  const isNative = (nativelySupported.includes(googleModel) || nativelySupported.includes(baseModel) || CLAUDE_MODEL_REGISTRY.includes(googleModel) || CLAUDE_MODEL_REGISTRY.includes(baseModel) || googleModel.startsWith("claude-3-"));
+  const startsWithAntigravity = (openaiBody.model || "").toLowerCase().startsWith("antigravity-");
+  const isNative = (
+      nativelySupported.includes(googleModel) || 
+      nativelySupported.includes(baseModel) || 
+      CLAUDE_MODEL_REGISTRY.includes(googleModel) || 
+      CLAUDE_MODEL_REGISTRY.includes(baseModel) || 
+      googleModel.startsWith("claude-3-") ||
+      googleModel.startsWith("gemini-") ||
+      googleModel.startsWith("gpt-") ||
+      !startsWithAntigravity
+  );
 
   if (isCli) {
       if (!googleModel.includes("claude")) {
@@ -137,7 +147,11 @@ export function transformToGoogleBody(
                    googleModel = "gemini-2.0-pro-exp";
               }
           } else {
-               googleModel = baseModel;
+               if (googleModel.includes("gemini-3") && googleModel.includes("thinking")) {
+                   googleModel = "gemini-3-flash-preview";
+               } else {
+                   googleModel = baseModel;
+               }
           }
        } else {
            googleModel = baseModel;
@@ -228,7 +242,7 @@ export function transformToGoogleBody(
           if (sig) {
             parts.push({ thought: true, text: thoughtText, thoughtSignature: sig });
           } else if (proxyConfig.features.keepThinking) {
-            parts.push({ thought: true, text: thoughtText });
+            parts.push({ text: "<thinking>\n" + thoughtText + "\n</thinking>" });
           }
         }
       }
@@ -320,12 +334,17 @@ export function transformToGoogleBody(
     };
   });
 
-  const isThinkingModel = rawModel.includes("-thinking");
+  const isThinkingModel = rawModel.includes("-thinking") || openaiBody.reasoning_effort !== undefined;
   const hasExplicitBudget = openaiBody.thinking_budget !== undefined || 
                            openaiBody.thinking?.budget_tokens !== undefined ||
                            openaiBody.providerOptions?.thinkingBudget !== undefined;
   
   let thinkingBudget = openaiBody.thinking_budget;
+  let adaptiveTier = extractedTier;
+
+  if (openaiBody.reasoning_effort) {
+      adaptiveTier = openaiBody.reasoning_effort.toLowerCase();
+  }
 
   // Support OpenAI-standard `thinking` parameter: { type: "enabled", budget_tokens: N }
   if (!thinkingBudget && openaiBody.thinking?.budget_tokens) {
@@ -338,9 +357,9 @@ export function transformToGoogleBody(
   }
 
   if (!thinkingBudget && isThinkingModel) {
-      if (extractedTier === "low") thinkingBudget = 8192;
-      else if (extractedTier === "medium") thinkingBudget = 16000;
-      else if (extractedTier === "high") thinkingBudget = 32768;
+      if (adaptiveTier === "low") thinkingBudget = 8192;
+      else if (adaptiveTier === "medium") thinkingBudget = 16000;
+      else if (adaptiveTier === "high") thinkingBudget = 32768;
       else thinkingBudget = 16000;
   }
   
@@ -388,6 +407,19 @@ You are pair programming with a USER to solve their coding task. The task may re
       };
   }
 
+  if (proxyConfig.features.googleSearchGrounding) {
+      const searchInstruction = "You have access to Google Search. Use it to find up-to-date information when necessary.";
+      if (systemInstruction) {
+          if (systemInstruction.parts && systemInstruction.parts[0]) {
+              systemInstruction.parts[0].text += "\n\n" + searchInstruction;
+          }
+      } else {
+          systemInstruction = {
+              parts: [{ text: searchInstruction }]
+          };
+      }
+  }
+
   const googleRequest: any = {
     contents,
     systemInstruction,
@@ -415,7 +447,7 @@ You are pair programming with a USER to solve their coding task. The task may re
     googleRequest.generationConfig.thinkingConfig.includeThoughts = true;
 
     if (googleModel.includes("gemini-3") && isCli) {
-        googleRequest.generationConfig.thinkingConfig.thinkingLevel = (extractedTier || "low").toLowerCase();
+        googleRequest.generationConfig.thinkingConfig.thinkingLevel = (adaptiveTier || extractedTier || "low").toLowerCase();
     }
   }
 
@@ -446,11 +478,15 @@ You are pair programming with a USER to solve their coding task. The task may re
           parameters: cleanParams
         });
       } else {
-        if (t.googleSearch || t.googleSearchRetrieval || t.codeExecution) {
+        if (t.googleSearch || t.googleSearchRetrieval || t.codeExecution || t.google_search || t.url_context || t.urlContext) {
           otherTools.push(t);
         } else if (t.type) {
-           if (t.type === "googleSearch" || t.type === "googleSearchRetrieval" || t.type === "codeExecution") {
+           if (t.type === "googleSearch" || t.type === "googleSearchRetrieval" || t.type === "codeExecution" || t.type === "urlContext") {
                otherTools.push({ [t.type]: {} });
+           } else if (t.type === "google_search") {
+               otherTools.push({ googleSearch: {} });
+           } else if (t.type === "url_context") {
+               otherTools.push({ urlContext: {} });
            }
         }
       }
@@ -473,17 +509,16 @@ You are pair programming with a USER to solve their coding task. The task may re
 
   const isGeminiModel = googleModel.includes("gemini");
   if (isGeminiModel && proxyConfig.features.googleSearchGrounding) {
-    const groundingTool: any = { googleSearchRetrieval: {} };
-    if (proxyConfig.features.groundingMode === 'always') {
-      groundingTool.googleSearchRetrieval.dynamicRetrievalConfig = {
-        mode: "MODE_UNSPECIFIED",
-        dynamicThreshold: 0.0
-      };
-    }
     if (!googleRequest.tools) {
       googleRequest.tools = [];
     }
-    googleRequest.tools.push(groundingTool);
+    // Inject both googleSearchRetrieval and googleSearch to ensure the model knows and has access
+    if (proxyConfig.features.groundingMode === 'always') {
+        googleRequest.tools.push({ googleSearchRetrieval: { dynamicRetrievalConfig: { mode: "MODE_DYNAMIC", dynamicThreshold: 0.0 } } });
+    } else {
+        googleRequest.tools.push({ googleSearchRetrieval: { dynamicRetrievalConfig: { mode: "MODE_DYNAMIC", dynamicThreshold: 0.3 } } });
+    }
+    googleRequest.tools.push({ googleSearch: {} });
   }
 
   if (googleRequest.tools && googleRequest.tools.length === 0) {
@@ -491,7 +526,7 @@ You are pair programming with a USER to solve their coding task. The task may re
   }
 
   if (googleRequest.tools && googleRequest.tools.some((t: any) => t.functionDeclarations)) {
-      const hasBuiltIn = googleRequest.tools.some((t: any) => t.googleSearch || t.googleSearchRetrieval || t.codeExecution);
+      const hasBuiltIn = googleRequest.tools.some((t: any) => t.googleSearch || t.googleSearchRetrieval || t.codeExecution || t.urlContext || t.google_search || t.url_context);
       if (hasBuiltIn) {
           if (!googleRequest.toolConfig) googleRequest.toolConfig = {};
           googleRequest.toolConfig.include_server_side_tool_invocations = true;
@@ -645,6 +680,8 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
   let buffer = "";
   let currentHasPriorToolCalls = hasPriorToolCalls;
   const state = { imagesAppended: new Set<string>() };
+  let accumulatedThought = "";
+  let latestSignature = "";
 
   return new TransformStream({
     transform(chunk, controller) {
@@ -666,9 +703,16 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
             const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls, state);
             
             if (openaiEvent) {
-              if (sessionId && openaiEvent._signature && openaiEvent._thought) {
-                  cacheSignature(sessionId, openaiEvent._thought, openaiEvent._signature);
-                  console.log(`[Cache] Signature cached for conversation ${sessionId}`);
+              if (sessionId) {
+                  if (openaiEvent._thought) {
+                      accumulatedThought += openaiEvent._thought;
+                  }
+                  if (openaiEvent._signature) {
+                      latestSignature = openaiEvent._signature;
+                  }
+                  if (accumulatedThought && latestSignature) {
+                      cacheSignature(sessionId, accumulatedThought, latestSignature);
+                  }
               }
 
               const choice = openaiEvent.choices?.[0];
@@ -684,35 +728,50 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
                 
                 const { _signature, _thought, ...cleanEvent } = openaiEvent;
                 
-                const contentStr = delta?.content;
-                if (contentStr && contentStr.length > 65536) {
-                    let offset = 0;
-                    const originalFinishReason = choice?.finish_reason;
-                    const originalToolCalls = delta?.tool_calls;
-                    const originalReasoning = delta?.reasoning_content;
-                    
-                    while (offset < contentStr.length) {
-                        const chunkStr = contentStr.substring(offset, offset + 65536);
-                        const chunkEvent = JSON.parse(JSON.stringify(cleanEvent));
+                const originalFinishReason = cleanEvent.choices?.[0]?.finish_reason;
+                const originalUsage = cleanEvent.usage;
+                
+                if (cleanEvent.choices?.[0]) delete cleanEvent.choices[0].finish_reason;
+                delete cleanEvent.usage;
+                
+                const hasDeltaContent = cleanEvent.choices?.[0]?.delta && 
+                  (cleanEvent.choices[0].delta.content || cleanEvent.choices[0].delta.reasoning_content || cleanEvent.choices[0].delta.tool_calls);
+                
+                if (hasDeltaContent) {
+                    const contentStr = cleanEvent.choices[0].delta.content;
+                    if (contentStr && contentStr.length > 65536) {
+                        let offset = 0;
+                        const originalToolCalls = cleanEvent.choices[0].delta.tool_calls;
+                        const originalReasoning = cleanEvent.choices[0].delta.reasoning_content;
                         
-                        chunkEvent.choices[0].delta = { content: chunkStr };
-                        
-                        if (offset === 0) {
-                            if (originalToolCalls) chunkEvent.choices[0].delta.tool_calls = originalToolCalls;
-                            if (originalReasoning) chunkEvent.choices[0].delta.reasoning_content = originalReasoning;
+                        while (offset < contentStr.length) {
+                            const chunkStr = contentStr.substring(offset, offset + 65536);
+                            const chunkEvent = JSON.parse(JSON.stringify(cleanEvent));
+                            chunkEvent.choices[0].delta = { content: chunkStr };
+                            
+                            if (offset === 0) {
+                                if (originalToolCalls) chunkEvent.choices[0].delta.tool_calls = originalToolCalls;
+                                if (originalReasoning) chunkEvent.choices[0].delta.reasoning_content = originalReasoning;
+                            }
+                            
+                            controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkEvent)}\n\n`));
+                            offset += 65536;
                         }
-                        
-                        if (offset + 65536 < contentStr.length) {
-                            delete chunkEvent.choices[0].finish_reason;
-                        } else {
-                            if (originalFinishReason) chunkEvent.choices[0].finish_reason = originalFinishReason;
-                        }
-                        
-                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkEvent)}\n\n`));
-                        offset += 65536;
+                    } else {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(cleanEvent)}\n\n`));
                     }
-                } else {
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(cleanEvent)}\n\n`));
+                }
+                
+                if (originalFinishReason || originalUsage) {
+                    const finishEvent: any = {
+                        id: cleanEvent.id,
+                        object: "chat.completion.chunk",
+                        created: cleanEvent.created,
+                        model: cleanEvent.model,
+                        choices: originalFinishReason ? [{ index: 0, delta: {}, finish_reason: originalFinishReason }] : [],
+                    };
+                    if (originalUsage) finishEvent.usage = originalUsage;
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(finishEvent)}\n\n`));
                 }
               }
             }
@@ -730,7 +789,42 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
             const googleEvent = JSON.parse(dataStr);
             const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls, state);
             if (openaiEvent) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify(openaiEvent)}\n\n`));
+                if (sessionId) {
+                  if (openaiEvent._thought) {
+                      accumulatedThought += openaiEvent._thought;
+                  }
+                  if (openaiEvent._signature) {
+                      latestSignature = openaiEvent._signature;
+                  }
+                  if (accumulatedThought && latestSignature) {
+                      cacheSignature(sessionId, accumulatedThought, latestSignature);
+                  }
+                }
+                const { _signature, _thought, ...cleanEvent } = openaiEvent;
+                const originalFinishReason = cleanEvent.choices?.[0]?.finish_reason;
+                const originalUsage = cleanEvent.usage;
+                
+                if (cleanEvent.choices?.[0]) delete cleanEvent.choices[0].finish_reason;
+                delete cleanEvent.usage;
+                
+                const hasDeltaContent = cleanEvent.choices?.[0]?.delta && 
+                  (cleanEvent.choices[0].delta.content || cleanEvent.choices[0].delta.reasoning_content || cleanEvent.choices[0].delta.tool_calls);
+                  
+                if (hasDeltaContent) {
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(cleanEvent)}\n\n`));
+                }
+                
+                if (originalFinishReason || originalUsage) {
+                    const finishEvent: any = {
+                        id: cleanEvent.id,
+                        object: "chat.completion.chunk",
+                        created: cleanEvent.created,
+                        model: cleanEvent.model,
+                        choices: originalFinishReason ? [{ index: 0, delta: {}, finish_reason: originalFinishReason }] : [],
+                    };
+                    if (originalUsage) finishEvent.usage = originalUsage;
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(finishEvent)}\n\n`));
+                }
             }
           } catch (e) {
             console.warn("[Stream] Failed to parse final line in flush:", e);

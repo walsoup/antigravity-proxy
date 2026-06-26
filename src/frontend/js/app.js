@@ -14,7 +14,8 @@ const state = {
         totalReqs: 0,
         totalErrs: 0
     },
-    logs: []
+    logs: [],
+    playgroundMessages: []
 };
 
 // ==========================================
@@ -925,18 +926,10 @@ async function saveSettings(event) {
     }
 }
 
-async function resetAccount(email) {
-    try {
-        await apiFetch(`/api/accounts/${email}/reset`, { method: 'POST' });
-        addLog(`Account ${email} reset successfully`, 'info');
-    } catch (e) {
-        addLog(`Reset failed: ${e.message}`, 'error');
-    }
-}
-
 // ==========================================
 // Playground Chat
 // ==========================================
+
 
 function handleChatKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -946,6 +939,7 @@ function handleChatKey(e) {
 }
 
 function clearChat() {
+    state.playgroundMessages = [];
     const history = document.getElementById('chat-history');
     history.innerHTML = `
         <div class="chat-bubble assistant">
@@ -974,7 +968,7 @@ async function sendChat() {
     history.appendChild(userBubble);
     history.scrollTop = history.scrollHeight;
     
-    // Add assistant bubble (empty initially)
+    // Add assistant bubble (loading indicator)
     const astBubble = document.createElement('div');
     astBubble.className = 'chat-bubble assistant';
     const astContent = document.createElement('div');
@@ -988,9 +982,20 @@ async function sendChat() {
     const system = document.getElementById('play-system').value;
     const stream = document.getElementById('play-stream').checked;
     
+    // Build full conversation history
     const messages = [];
-    if (system) messages.push({ role: 'system', content: system });
+    if (system) {
+        messages.push({ role: 'system', content: system });
+    }
+    
+    state.playgroundMessages.forEach(msg => {
+        messages.push(msg);
+    });
+    
     messages.push({ role: 'user', content: text });
+    
+    let fullResponseText = '';
+    let fullReasoningText = '';
     
     try {
         const response = await fetch('/v1/chat/completions', {
@@ -1016,21 +1021,39 @@ async function sendChat() {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let fullText = '';
+            let reasoningText = '';
+            let buffer = '';
             
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
                 
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\\n');
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
                 
                 for (const line of lines) {
-                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                    const trimmedLine = line.trim();
+                    if (trimmedLine.startsWith('data: ') && trimmedLine !== 'data: [DONE]') {
                         try {
-                            const data = JSON.parse(line.substring(6));
-                            if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
-                                fullText += data.choices[0].delta.content;
-                                astContent.textContent = fullText;
+                            const data = JSON.parse(trimmedLine.substring(6));
+                            const choice = data.choices?.[0];
+                            if (choice?.delta) {
+                                if (choice.delta.reasoning_content) {
+                                    reasoningText += choice.delta.reasoning_content;
+                                }
+                                if (choice.delta.content) {
+                                    fullText += choice.delta.content;
+                                }
+                                
+                                let innerHTML = '';
+                                if (reasoningText) {
+                                    innerHTML += `<div class="thinking-block" style="opacity: 0.7; font-size: 0.85rem; border-left: 2px solid var(--md-primary); padding-left: 8px; margin-bottom: 8px; font-style: italic;">${escapeHTML(reasoningText)}</div>`;
+                                }
+                                if (fullText) {
+                                    innerHTML += `<div>${escapeHTML(fullText)}</div>`;
+                                }
+                                astContent.innerHTML = innerHTML || '<span class="pulse-ring" style="display:inline-block; margin-top: 4px;"></span>';
                                 history.scrollTop = history.scrollHeight;
                             }
                         } catch (e) {
@@ -1039,11 +1062,27 @@ async function sendChat() {
                     }
                 }
             }
+            fullResponseText = fullText;
+            fullReasoningText = reasoningText;
         } else {
             const data = await response.json();
-            astContent.textContent = data.choices[0].message.content;
+            fullResponseText = data.choices[0]?.message?.content || '';
+            fullReasoningText = data.choices[0]?.message?.reasoning_content || '';
+            
+            let innerHTML = '';
+            if (fullReasoningText) {
+                innerHTML += `<div class="thinking-block" style="opacity: 0.7; font-size: 0.85rem; border-left: 2px solid var(--md-primary); padding-left: 8px; margin-bottom: 8px; font-style: italic;">${escapeHTML(fullReasoningText)}</div>`;
+            }
+            if (fullResponseText) {
+                innerHTML += `<div>${escapeHTML(fullResponseText)}</div>`;
+            }
+            astContent.innerHTML = innerHTML || '<i>No response content</i>';
             history.scrollTop = history.scrollHeight;
         }
+        
+        // Save the successful round to memory
+        state.playgroundMessages.push({ role: 'user', content: text });
+        state.playgroundMessages.push({ role: 'assistant', content: fullResponseText });
     } catch (err) {
         astContent.innerHTML = `<span style="color: var(--status-dead)">Error: ${err.message}</span>`;
     } finally {
@@ -1052,6 +1091,7 @@ async function sendChat() {
         inputEl.focus();
     }
 }
+
 
 function escapeHTML(str) {
     return str.replace(/[&<>'"]/g, 

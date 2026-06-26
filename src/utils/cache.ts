@@ -2,7 +2,7 @@
 const signatureCache = new Map<string, string>();
 
 export function cacheSignature(conversationId: string, thought: string, signature: string) {
-  const key = `${conversationId}:${Bun.hash(thought)}`; 
+  const key = `${conversationId}:${Bun.hash(thought.trim())}`; 
   signatureCache.set(key, signature);
   
   // LRU cleanup if too big (simplified)
@@ -13,6 +13,6 @@ export function cacheSignature(conversationId: string, thought: string, signatur
 }
 
 export function getSignature(conversationId: string, thought: string): string | undefined {
-  const key = `${conversationId}:${Bun.hash(thought)}`;
+  const key = `${conversationId}:${Bun.hash(thought.trim())}`;
   return signatureCache.get(key);
 }

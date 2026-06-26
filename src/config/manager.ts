@@ -78,20 +78,20 @@ const DEFAULT_CONFIG: ProxyConfig = {
     enableConsoleCapture: true
   },
   features: {
-    googleSearchGrounding: false,
+    googleSearchGrounding: true,
     groundingMode: 'auto',
     keepThinking: false,
     sanitizeToolNames: true,
     pidOffsetEnabled: false,
     softQuotaThresholdPercent: 90,
-    jitterEnabled: true,
+    jitterEnabled: false,
     jitterMinMs: 50,
     jitterMaxMs: 300,
     sanitizeAntigravityPrompts: false
   },
   scheduling: {
-    mode: 'cache_first',
-    maxCacheFirstWaitSeconds: 60,
+    mode: 'balance',
+    maxCacheFirstWaitSeconds: 5,
     maxRateLimitWaitSeconds: 300
   }
 };

@@ -150,6 +150,68 @@ const server = Bun.serve({
         } });
     }
 
+    if (cleanPath === "/api/v1/credits" || cleanPath === "/v1/credits" || cleanPath === "/dashboard/billing/credit_grants" || cleanPath === "/v1/dashboard/billing/credit_grants" || cleanPath === "/v1/dashboard/billing/subscription") {
+        let totalGranted = 0;
+        let totalUsed = 0;
+
+        const allAccounts = getAccounts();
+        for (const acc of allAccounts) {
+            if (acc.quota && Array.isArray(acc.quota)) {
+                for (const q of acc.quota) {
+                    const limitStr = String(q.limit).replace(/,/g, '');
+                    const usageStr = String(q.usage).replace(/,/g, '');
+                    const limitVal = parseFloat(limitStr);
+                    const usageVal = parseFloat(usageStr);
+                    
+                    if (!isNaN(limitVal) && limitVal > 0) {
+                        totalGranted += limitVal;
+                    }
+                    if (!isNaN(usageVal) && usageVal > 0) {
+                        totalUsed += usageVal;
+                    }
+                }
+            }
+        }
+        
+        // If everything is unknown, provide fallback
+        if (totalGranted === 0 && totalUsed === 0) {
+            totalGranted = 999999.0;
+        }
+
+        return new Response(JSON.stringify({
+            data: {
+                total_usage: totalUsed,
+                total_credits: totalGranted
+            },
+            object: "credit_summary",
+            total_granted: totalGranted,
+            total_used: totalUsed,
+            total_available: Math.max(0, totalGranted - totalUsed),
+            has_payment_method: true,
+            plan: {
+                title: "Pay-as-you-go"
+            },
+            grants: {
+                object: "list",
+                data: [
+                    {
+                        object: "credit_grant",
+                        id: "cg_antigravity",
+                        grant_amount: totalGranted,
+                        used_amount: totalUsed,
+                        effective_at: 1673740800.0,
+                        expires_at: 2000000000.0
+                    }
+                ]
+            }
+        }), { headers: { 
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "*"
+        } });
+    }
+
     // OpenAI Responses API endpoint
     if (cleanPath === "/v1/responses" && req.method === "POST") {
       const responsesBody = await req.json() as any;

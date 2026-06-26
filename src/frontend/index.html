@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- Login Modal -->
     <div id="login-modal" class="modal-overlay active">
         <div class="glass-card login-card">
             <div class="logo-icon glow-pulse">A</div>
@@ -32,19 +33,19 @@
             <div class="nav-links">
                 <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                    Dashboard
+                    <span>Dashboard</span>
                 </button>
                 <button class="nav-btn" data-tab="playground" onclick="switchTab('playground')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                    Playground
+                    <span>Playground</span>
                 </button>
                 <button class="nav-btn" data-tab="connections" onclick="switchTab('connections')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                    Endpoints
+                    <span>Endpoints</span>
                 </button>
                 <button class="nav-btn" data-tab="settings" onclick="switchTab('settings')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    Settings
+                    <span>Settings</span>
                 </button>
             </div>
             
@@ -76,19 +77,18 @@
             
             <!-- Dashboard View -->
             <div id="view-dashboard" class="view-container active">
-                <!-- Metrics Grid -->
                 <div class="section-title">Model Clusters</div>
                 <div id="family-cards" class="metrics-grid">
                     <!-- Cards injected by JS -->
                 </div>
                 
                 <!-- Live Analytics Chart -->
-                <div class="analytics-section mt-8">
+                <div class="analytics-section">
                     <div class="glass-card p-6">
                         <div class="flex-between mb-4">
                             <div>
                                 <h3 class="text-xl font-semibold">Telemetry Stream</h3>
-                                <p class="text-secondary text-sm mt-1">Live token and request throughput</p>
+                                <p class="text-secondary text-sm mt-4">Live token and request throughput</p>
                             </div>
                             <div class="stats-row">
                                 <div class="stat-pill"><span id="stat-reqs">0</span> Reqs/min</div>
@@ -96,35 +96,35 @@
                             </div>
                         </div>
                         <div class="chart-container">
-                            <svg id="telemetry-chart" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                            <svg id="telemetry-chart" viewBox="0 0 1000 180" preserveAspectRatio="none">
                                 <defs>
                                     <linearGradient id="gradient-primary" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8"></stop>
-                                        <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"></stop>
+                                        <stop offset="0%" stop-color="#00b4d8" stop-opacity="0.6"></stop>
+                                        <stop offset="100%" stop-color="#00b4d8" stop-opacity="0"></stop>
                                     </linearGradient>
                                 </defs>
                                 <path id="chart-fill" d="" fill="url(#gradient-primary)"></path>
-                                <path id="chart-path" d="" fill="none" stroke="#22d3ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path id="chart-path" d="" fill="none" stroke="#00b4d8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
                             </svg>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Accounts Table -->
-                <div class="accounts-section mt-8">
+                <div class="accounts-section">
                     <div class="glass-card p-6">
                         <div class="flex-between mb-4">
                             <div>
                                 <h3 class="text-xl font-semibold">Active Pool Nodes</h3>
-                                <p class="text-secondary text-sm mt-1">Status of individual backend accounts</p>
+                                <p class="text-secondary text-sm mt-4">Status of individual backend accounts</p>
                             </div>
-                            <div style="display: flex; gap: 0.5rem;">
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                 <a href="/oauth/start" class="action-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><path d="M12 5v14M5 12h14"/></svg>
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                                     Add Account
                                 </a>
-                                <button class="action-btn" onclick="resetAllAccounts()">Reset All Cooldowns</button>
-                                <button class="action-btn" onclick="purgeSystemState()" style="background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;">Purge State</button>
+                                <button class="action-btn" onclick="resetAllAccounts()">Reset Cooldowns</button>
+                                <button class="action-btn danger" onclick="purgeSystemState()">Purge State</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -152,7 +152,7 @@
                 <div class="playground-layout">
                     <div class="chat-container glass-card">
                         <div class="chat-header">
-                            <h3>Test Inference</h3>
+                            <h3 style="font-weight: 600;">Test Inference</h3>
                             <div style="display:flex; gap: 0.5rem;">
                                 <button class="icon-btn mobile-only-inline" onclick="togglePlaygroundSidebar()" title="Parameters">
                                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -164,13 +164,13 @@
                         </div>
                         <div class="chat-history" id="chat-history">
                             <div class="chat-bubble assistant">
-                                <div class="bubble-content">Welcome to the Antigravity Sandbox. Send a message to test the models.</div>
+                                <div class="bubble-content">Welcome to the Antigravity Playground. Select a model and start chatting to test inference.</div>
                             </div>
                         </div>
                         <div class="chat-input-area">
-                            <textarea id="chat-input" placeholder="Type a message... (Shift+Enter for new line)" rows="1" onkeydown="handleChatKey(event)"></textarea>
+                            <textarea id="chat-input" placeholder="Type a message… (Shift+Enter for new line)" rows="1" onkeydown="handleChatKey(event)"></textarea>
                             <button class="send-btn" id="chat-send-btn" onclick="sendChat()">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                             </button>
                         </div>
                     </div>
@@ -182,33 +182,36 @@
                                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </div>
-                        <h3 class="mb-4 desktop-only">Parameters</h3>
+                        <h3 class="mb-4 desktop-only" style="font-weight: 600; font-size: 1rem;">Parameters</h3>
                         <div class="input-group">
-                            <label class="text-secondary text-sm mb-2 block" style="display:block; margin-bottom: 8px;">Model Engine</label>
+                            <label>Model Engine</label>
                             <select id="play-model" class="glass-select w-full">
                                 <option value="claude-sonnet-4-6">Claude 4.6 Sonnet (Thinking)</option>
                                 <option value="claude-opus-4-6-thinking">Claude 4.6 Opus (Thinking)</option>
                                 <option value="gemini-3-flash">Gemini 3 Flash</option>
                                 <option value="gemini-3-flash-agent">Gemini 3.5 Flash (High)</option>
                                 <option value="gemini-3.5-flash-low">Gemini 3.5 Flash (Medium)</option>
-                                <option value="gemini-3.5-flash-extra-low">Gemini 3.5 Flash (Low)</option>
                                 <option value="gemini-pro-agent">Gemini 3.1 Pro (High)</option>
                                 <option value="gemini-3.1-pro-low">Gemini 3.1 Pro (Low)</option>
                                 <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                                <option value="gemini-2.5-flash">Gemini 3.1 Flash Lite</option>
                                 <option value="gpt-oss-120b-medium">GPT-OSS 120B (Medium)</option>
                             </select>
                         </div>
                         <div class="input-group mt-4">
-                            <label class="text-secondary text-sm mb-2 block" style="display:block; margin-bottom: 8px;">System Instructions</label>
-                            <textarea id="play-system" rows="4" class="glass-input w-full" placeholder="You are a helpful assistant..."></textarea>
+                            <label>System Instructions</label>
+                            <textarea id="play-system" rows="4" class="glass-input w-full" placeholder="You are a helpful assistant…"></textarea>
                         </div>
-                        <div class="flex-between mt-4">
-                            <label class="text-secondary text-sm">Stream Response</label>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="play-stream" checked>
-                                <span class="slider"></span>
-                            </label>
+                        <div class="mt-4">
+                            <div class="toggle-row">
+                                <div class="toggle-row-text">
+                                    <div class="toggle-row-label">Stream Response</div>
+                                    <div class="toggle-row-desc">Receive tokens as they generate</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="play-stream" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -224,10 +227,10 @@
                     <div class="glass-card p-6">
                         <div class="flex-between mb-4">
                             <h3 class="text-xl font-semibold flex-align-center gap-2">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#06b6d4" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#00b4d8" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
                                 Claude Code
                             </h3>
-                            <button class="icon-btn" onclick="copyConfig('claude-config')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            <button class="icon-btn" onclick="copyConfig('claude-config')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                         </div>
                         <p class="text-sm text-secondary mb-4">Export these environment variables before running Claude Code.</p>
                         <pre class="code-block" id="claude-config"><code>export ANTHROPIC_BASE_URL="http://localhost:3000/v1"
@@ -240,12 +243,12 @@ export ANTHROPIC_API_KEY="antigravity"
                     <div class="glass-card p-6">
                         <div class="flex-between mb-4">
                             <h3 class="text-xl font-semibold flex-align-center gap-2">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#10b981" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
                                 OpenCode
                             </h3>
-                            <button class="icon-btn" onclick="copyConfig('opencode-config')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            <button class="icon-btn" onclick="copyConfig('opencode-config')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                         </div>
-                        <p class="text-sm text-secondary mb-4">Add this to your <code>~/.config/opencode/opencode.json</code>.</p>
+                        <p class="text-sm text-secondary mb-4">Add this to your <code style="font-family:var(--font-mono); color: var(--md-primary);">~/.config/opencode/opencode.json</code>.</p>
                         <pre class="code-block" id="opencode-config"><code>"antigravity-proxy": {
   "npm": "@ai-sdk/openai-compatible",
   "options": {
@@ -265,10 +268,10 @@ export ANTHROPIC_API_KEY="antigravity"
                     <div class="glass-card p-6">
                         <div class="flex-between mb-4">
                             <h3 class="text-xl font-semibold flex-align-center gap-2">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
                                 OpenAI Compatible / Cursor
                             </h3>
-                            <button class="icon-btn" onclick="copyConfig('openai-config')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                            <button class="icon-btn" onclick="copyConfig('openai-config')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                         </div>
                         <p class="text-sm text-secondary mb-4">For any tool that supports OpenAI-compatible endpoints.</p>
                         <pre class="code-block" id="openai-config"><code>Base URL: http://localhost:3000/v1
@@ -287,17 +290,18 @@ Models available:
 
             <!-- Settings View -->
             <div id="view-settings" class="view-container hidden">
-                <div class="glass-card p-6 max-w-4xl mx-auto">
-                    <form id="settings-form" onsubmit="saveSettings(event); return false;">
+                <form id="settings-form" onsubmit="saveSettings(event); return false;" class="max-w-5xl mx-auto">
+                    <div class="settings-grid">
+
                         <!-- Section 1: Rotation & Strategy -->
-                        <div class="settings-section">
-                            <h3 class="text-xl font-semibold mb-4 flex-align-center gap-2">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-primary)" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                                Rotation Strategy
+                        <div class="glass-card p-6 settings-card">
+                            <h3>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:-2px; margin-right:6px;"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+                                Rotation &amp; Strategy
                             </h3>
                             <div class="grid-2 gap-4">
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Routing Strategy</label>
+                                    <label>Routing Strategy</label>
                                     <select id="settings-strategy" class="glass-select w-full" onchange="syncStrategyFromSettings(this.value)">
                                         <option value="hybrid">Hybrid Routing</option>
                                         <option value="sticky">Sticky Routing</option>
@@ -307,7 +311,7 @@ Models available:
                                     </select>
                                 </div>
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Scheduling Mode</label>
+                                    <label>Scheduling Mode</label>
                                     <select id="settings-scheduling-mode" class="glass-select w-full">
                                         <option value="cache_first">Cache First (Wait for same account)</option>
                                         <option value="balance">Balance (Switch immediately)</option>
@@ -317,170 +321,173 @@ Models available:
                             </div>
                             <div class="grid-2 gap-4 mt-4">
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Default Cooldown (ms)</label>
+                                    <label>Default Cooldown (ms)</label>
                                     <input type="number" id="settings-cooldown-default" class="glass-input w-full">
                                 </div>
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Max Cooldown (ms)</label>
+                                    <label>Max Cooldown (ms)</label>
                                     <input type="number" id="settings-cooldown-max" class="glass-input w-full">
                                 </div>
                             </div>
                         </div>
 
                         <!-- Section 2: Health Scoring -->
-                        <div class="settings-section mt-6">
-                            <h3 class="text-xl font-semibold mb-4 flex-align-center gap-2">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--status-healthy)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        <div class="glass-card p-6 settings-card">
+                            <h3>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:-2px; margin-right:6px;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                                 Health Scoring
                             </h3>
                             <div class="grid-3 gap-4">
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Min Health</label>
+                                    <label>Min Health</label>
                                     <input type="number" id="settings-health-min" class="glass-input w-full">
                                 </div>
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Max Health</label>
+                                    <label>Max Health</label>
                                     <input type="number" id="settings-health-max" class="glass-input w-full">
                                 </div>
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Initial Health</label>
+                                    <label>Initial Health</label>
                                     <input type="number" id="settings-health-initial" class="glass-input w-full">
                                 </div>
                             </div>
                             <div class="grid-2 gap-4 mt-4">
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">API Error Penalty</label>
+                                    <label>API Error Penalty</label>
                                     <input type="number" id="settings-penalty-api" class="glass-input w-full">
                                 </div>
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Refresh Error Penalty</label>
+                                    <label>Refresh Penalty</label>
                                     <input type="number" id="settings-penalty-refresh" class="glass-input w-full">
                                 </div>
                             </div>
                             <div class="grid-3 gap-4 mt-4">
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Success Reward</label>
+                                    <label>Success Reward</label>
                                     <input type="number" id="settings-reward-success" class="glass-input w-full">
                                 </div>
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Health Weight</label>
+                                    <label>Health Weight</label>
                                     <input type="number" step="0.1" id="settings-weight-health" class="glass-input w-full">
                                 </div>
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">LRU Weight</label>
+                                    <label>LRU Weight</label>
                                     <input type="number" step="0.01" id="settings-weight-lru" class="glass-input w-full">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Section 3: Model Blacklist & Retry -->
-                        <div class="settings-section mt-6">
-                            <h3 class="text-xl font-semibold mb-4 flex-align-center gap-2">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--status-dead)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>
+                        <!-- Section 3: Model Configuration -->
+                        <div class="glass-card p-6 settings-card">
+                            <h3>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:-2px; margin-right:6px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>
                                 Model Configuration
                             </h3>
                             <div class="input-group">
-                                <label class="text-secondary text-sm mb-2 block">Model Blacklist (one per line)</label>
+                                <label>Model Blacklist (one per line)</label>
                                 <textarea id="settings-blacklist" rows="3" class="glass-input w-full font-mono" placeholder="gemini-1.0-pro-vision"></textarea>
                             </div>
                             <div class="grid-2 gap-4 mt-4">
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Max Retry Attempts</label>
+                                    <label>Max Retry Attempts</label>
                                     <input type="number" id="settings-retry-max" class="glass-input w-full">
                                 </div>
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Transient Retry Threshold (s)</label>
+                                    <label>Transient Retry Threshold (s)</label>
                                     <input type="number" id="settings-retry-threshold" class="glass-input w-full">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Section 4: Advanced Features & Security -->
-                        <div class="settings-section mt-6">
-                            <h3 class="text-xl font-semibold mb-4 flex-align-center gap-2">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-primary)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                                Features & Security
+                        <!-- Section 4: Features & Security -->
+                        <div class="glass-card p-6 settings-card">
+                            <h3>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:-2px; margin-right:6px;"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                                Features &amp; Security
                             </h3>
-                            <div class="flex-between">
-                                <div>
-                                    <label class="text-secondary text-sm block">Google Search Grounding</label>
-                                    <p class="text-muted text-xs">Enable real-time search grounding for Gemini models</p>
+                            <div class="toggle-rows-group">
+                                <div class="toggle-row">
+                                    <div class="toggle-row-text">
+                                        <div class="toggle-row-label">🌍 Google Search Grounding</div>
+                                        <div class="toggle-row-desc">Allow Gemini models to search the web in real-time</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="settings-google-grounding">
+                                        <span class="slider"></span>
+                                    </label>
                                 </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="settings-google-grounding">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            <div class="flex-between mt-4">
-                                <div>
-                                    <label class="text-secondary text-sm block">Keep Thinking blocks</label>
-                                    <p class="text-muted text-xs">Preserve thinking blocks across conversation turns</p>
+                                <div class="toggle-row">
+                                    <div class="toggle-row-text">
+                                        <div class="toggle-row-label">🧠 Keep Thinking Blocks</div>
+                                        <div class="toggle-row-desc">Preserve thinking blocks across conversation turns</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="settings-keep-thinking">
+                                        <span class="slider"></span>
+                                    </label>
                                 </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="settings-keep-thinking">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            <div class="flex-between mt-4">
-                                <div>
-                                    <label class="text-secondary text-sm block">Sanitize Tool Names</label>
-                                    <p class="text-muted text-xs">Sanitize MCP tool names that start with numbers or have invalid chars</p>
+                                <div class="toggle-row">
+                                    <div class="toggle-row-text">
+                                        <div class="toggle-row-label">🔧 Sanitize Tool Names</div>
+                                        <div class="toggle-row-desc">Sanitize MCP tool names that start with numbers</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="settings-sanitize-tools">
+                                        <span class="slider"></span>
+                                    </label>
                                 </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="settings-sanitize-tools">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            <div class="flex-between mt-4">
-                                <div>
-                                    <label class="text-secondary text-sm block">Sanitize Antigravity Context</label>
-                                    <p class="text-muted text-xs">Strip Antigravity-specific XML instructions to save context window</p>
+                                <div class="toggle-row">
+                                    <div class="toggle-row-text">
+                                        <div class="toggle-row-label">✂️ Sanitize Antigravity Context</div>
+                                        <div class="toggle-row-desc">Strip Antigravity-specific XML instructions</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="settings-sanitize-antigravity">
+                                        <span class="slider"></span>
+                                    </label>
                                 </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="settings-sanitize-antigravity">
-                                    <span class="slider"></span>
-                                </label>
                             </div>
                             <div class="input-group mt-4">
-                                <label class="text-secondary text-sm mb-2 block">Console Passkey Authentication</label>
+                                <label>Console Passkey Authentication</label>
                                 <input type="password" id="settings-security-password" class="glass-input w-full" placeholder="Leave blank to disable authentication">
                             </div>
                         </div>
 
                         <!-- Section 5: Alerting & Webhooks -->
-                        <div class="settings-section mt-6">
-                            <h3 class="text-xl font-semibold mb-4 flex-align-center gap-2">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--status-degraded)" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"></path></svg>
-                                Outage Alerting & Webhooks
+                        <div class="glass-card p-6 settings-card full-width-card">
+                            <h3>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:-2px; margin-right:6px;"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"></path></svg>
+                                Outage Alerting &amp; Webhooks
                             </h3>
-                            <div class="input-group">
-                                <label class="text-secondary text-sm mb-2 block">Discord/Slack Webhook URL</label>
-                                <input type="text" id="settings-webhook-url" class="glass-input w-full font-mono" placeholder="https://discord.com/api/webhooks/...">
-                            </div>
-                            <div class="grid-2 gap-4 mt-4">
+                            <div class="grid-2 gap-4">
                                 <div class="input-group">
-                                    <label class="text-secondary text-sm mb-2 block">Health Threshold (%)</label>
+                                    <label>Discord/Slack Webhook URL</label>
+                                    <input type="text" id="settings-webhook-url" class="glass-input w-full font-mono" placeholder="https://discord.com/api/webhooks/...">
+                                </div>
+                                <div class="input-group">
+                                    <label>Health Threshold (%)</label>
                                     <input type="number" id="settings-alert-threshold" class="glass-input w-full" placeholder="30">
                                 </div>
-                                <div class="flex-between mt-6">
-                                    <div>
-                                        <label class="text-secondary text-sm block">Notify on full cooldown</label>
-                                        <p class="text-muted text-xs">Alert if all accounts in a family go into cooldown</p>
-                                    </div>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="settings-alert-cooldown">
-                                        <span class="slider"></span>
-                                    </label>
+                            </div>
+                            <div class="toggle-row mt-4">
+                                <div class="toggle-row-text">
+                                    <div class="toggle-row-label">Notify on full cooldown</div>
+                                    <div class="toggle-row-desc">Alert if all accounts in a family go into cooldown</div>
                                 </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="settings-alert-cooldown">
+                                    <span class="slider"></span>
+                                </label>
                             </div>
                         </div>
 
-                        <div class="flex-between mt-8 border-t border-glass pt-6">
-                            <span id="settings-save-status" class="text-sm"></span>
-                            <button type="submit" class="primary-btn">Save Configuration</button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+
+                    <div class="flex-between mt-6 glass-card p-4">
+                        <span id="settings-save-status" class="text-sm text-secondary"></span>
+                        <button type="submit" class="primary-btn">Save Configuration</button>
+                    </div>
+                </form>
             </div>
             
         </main>
@@ -488,8 +495,11 @@ Models available:
         <!-- Live Log Overlay -->
         <div id="log-overlay" class="log-overlay">
             <div class="log-header" onclick="toggleLogs()">
-                <span>System Logs</span>
-                <svg id="log-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                <div class="flex-align-center gap-2">
+                    <div class="log-header-dot"></div>
+                    <span>System Logs</span>
+                </div>
+                <svg id="log-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
             </div>
             <div class="log-content" id="log-content">
                 <!-- Logs injected here -->
