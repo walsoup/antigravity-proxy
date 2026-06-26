@@ -693,9 +693,13 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
                     
                     while (offset < contentStr.length) {
                         const chunkStr = contentStr.substring(offset, offset + 65536);
-                        const chunkEvent = JSON.parse(JSON.stringify(cleanEvent));
-                        
-                        chunkEvent.choices[0].delta = { content: chunkStr };
+                        const chunkEvent = {
+                            ...cleanEvent,
+                            choices: [{
+                                ...cleanEvent.choices[0],
+                                delta: { content: chunkStr }
+                            }]
+                        };
                         
                         if (offset === 0) {
                             if (originalToolCalls) chunkEvent.choices[0].delta.tool_calls = originalToolCalls;

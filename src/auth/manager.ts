@@ -21,25 +21,36 @@ const MODEL_FAMILIES = {
   'Claude/GPT': (n: string) => n.includes('claude') || n.includes('gpt'),
 };
 
+const MODEL_FAMILIES_ENTRIES = Object.entries(MODEL_FAMILIES);
+const familyNameCache = new Map<string, string>();
+
 export function getFamilyName(modelName: string) {
   const n = modelName.toLowerCase();
-  for (const [family, check] of Object.entries(MODEL_FAMILIES)) {
-    if (check(n)) return family;
+  let cached = familyNameCache.get(n);
+  if (cached) return cached;
+  for (const [family, check] of MODEL_FAMILIES_ENTRIES) {
+    if (check(n)) {
+      familyNameCache.set(n, family);
+      return family;
+    }
   }
+  familyNameCache.set(n, 'Other');
   return 'Other';
 }
 
+const DEFAULT_PROXY_CONFIG = {
+  rotation: { cooldown: { defaultDurationMs: 60000, maxDurationMs: 3600000 } },
+  scoring: {
+      weights: { health: 2, lru: 0.1 },
+      healthRange: { min: 0, max: 100, initial: 100 },
+      penalties: { apiError: -10, refreshError: -20, fatalError: -50, systemicError: -10 },
+      rewards: { success: 2 }
+  },
+  tokens: { expiryBufferMs: 60000 }
+};
+
 function getProxyConfig() {
-  return {
-    rotation: { cooldown: { defaultDurationMs: 60000, maxDurationMs: 3600000 } },
-    scoring: { 
-        weights: { health: 2, lru: 0.1 },
-        healthRange: { min: 0, max: 100, initial: 100 },
-        penalties: { apiError: -10, refreshError: -20, fatalError: -50, systemicError: -10 },
-        rewards: { success: 2 }
-    },
-    tokens: { expiryBufferMs: 60000 }
-  };
+  return DEFAULT_PROXY_CONFIG;
 }
 
 export async function initManager() {
@@ -135,15 +146,19 @@ function isAccountQuotaExhausted(account: AntigravityAccount, model?: string): b
   if (threshold >= 100 || !account.quota || account.quota.length === 0) return false;
 
   const family = model ? getFamilyName(model) : null;
-  const relevantQuotas = family
-    ? account.quota.filter(q => {
+  let relevantQuotas = account.quota;
+  if (family) {
+    const fLower = family.toLowerCase();
+    const isClaude = fLower.includes('claude');
+    const isGemini = fLower.includes('gemini');
+
+    relevantQuotas = account.quota.filter(q => {
         const qLower = q.groupName.toLowerCase();
-        const fLower = family.toLowerCase();
         return qLower.includes(fLower) || fLower.includes(qLower) ||
-               (fLower.includes('claude') && qLower.includes('claude')) ||
-               (fLower.includes('gemini') && qLower.includes('gemini'));
-      })
-    : account.quota;
+               (isClaude && qLower.includes('claude')) ||
+               (isGemini && qLower.includes('gemini'));
+    });
+  }
 
   if (relevantQuotas.length === 0) return false;
 
