@@ -512,8 +512,10 @@ You are pair programming with a USER to solve their coding task. The task may re
     if (!googleRequest.tools) {
       googleRequest.tools = [];
     }
-    // Conditionally inject googleSearch or googleSearchRetrieval based on model support
-    if (googleModel.includes("gemini-2")) {
+    const hasFunctions = googleRequest.tools && googleRequest.tools.some((t: any) => t.functionDeclarations);
+    
+    // Conditionally inject googleSearch or googleSearchRetrieval based on model support and tool presence
+    if (googleModel.includes("gemini-2") || !hasFunctions) {
         googleRequest.tools.push({ googleSearch: {} });
     } else {
         if (proxyConfig.features.groundingMode === 'always') {
