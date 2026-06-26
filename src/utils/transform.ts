@@ -557,7 +557,7 @@ export function transformGoogleEventToOpenAI(googleData: any, model: string, req
         object: "chat.completion.chunk",
         created: Math.floor(Date.now() / 1000),
         model: model,
-        choices: [],
+        choices: [{ index: 0, delta: {} }],
         usage: usage
       };
     }
