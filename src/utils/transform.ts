@@ -637,6 +637,20 @@ export function transformGoogleEventToOpenAI(googleData: any, model: string, req
     delta.tool_calls = toolCalls;
   }
   
+  if (candidate.groundingMetadata?.groundingChunks?.length > 0) {
+      let groundingText = "\n\n---\n**Sources:**\n";
+      let addedSources = 0;
+      candidate.groundingMetadata.groundingChunks.forEach((chunk: any) => {
+          if (chunk.web?.uri && chunk.web?.title) {
+              addedSources++;
+              groundingText += `${addedSources}. [${chunk.web.title}](${chunk.web.uri})\n`;
+          }
+      });
+      if (addedSources > 0) {
+          delta.content = (delta.content || "") + groundingText;
+      }
+  }
+  
   let openaiFinishReason: string | null = null;
   if (finishReason) {
     if (toolCalls.length > 0 || hasPriorToolCalls) {
