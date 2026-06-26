@@ -525,12 +525,12 @@ You are pair programming with a USER to solve their coding task. The task may re
       delete googleRequest.tools;
   }
 
-  if (googleRequest.tools && googleRequest.tools.some((t: any) => t.functionDeclarations)) {
+  if (googleRequest.tools && googleRequest.tools.length > 0) {
       const hasBuiltIn = googleRequest.tools.some((t: any) => t.googleSearch || t.googleSearchRetrieval || t.codeExecution || t.urlContext || t.google_search || t.url_context);
       if (hasBuiltIn) {
           if (!googleRequest.toolConfig) googleRequest.toolConfig = {};
-          googleRequest.toolConfig.include_server_side_tool_invocations = true;
           googleRequest.toolConfig.includeServerSideToolInvocations = true;
+          googleRequest.toolConfig.include_server_side_tool_invocations = true;
           if (!googleRequest.tool_config) googleRequest.tool_config = {};
           googleRequest.tool_config.include_server_side_tool_invocations = true;
       }
