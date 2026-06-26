@@ -53,7 +53,7 @@ setInterval(() => {
 refreshAllQuotas();
 
 const server = Bun.serve({
-  port: 3000,
+  port: process.env.PORT || 3000,
   hostname: "0.0.0.0",
   idleTimeout: 0,
   async fetch(req) {

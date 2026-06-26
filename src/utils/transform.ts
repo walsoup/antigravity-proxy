@@ -518,22 +518,10 @@ You are pair programming with a USER to solve their coding task. The task may re
     } else {
         googleRequest.tools.push({ googleSearchRetrieval: { dynamicRetrievalConfig: { mode: "MODE_DYNAMIC", dynamicThreshold: 0.3 } } });
     }
-    googleRequest.tools.push({ googleSearch: {} });
   }
 
   if (googleRequest.tools && googleRequest.tools.length === 0) {
       delete googleRequest.tools;
-  }
-
-  if (googleRequest.tools && googleRequest.tools.length > 0) {
-      const hasBuiltIn = googleRequest.tools.some((t: any) => t.googleSearch || t.googleSearchRetrieval || t.codeExecution || t.urlContext || t.google_search || t.url_context);
-      if (hasBuiltIn) {
-          if (!googleRequest.toolConfig) googleRequest.toolConfig = {};
-          googleRequest.toolConfig.includeServerSideToolInvocations = true;
-          googleRequest.toolConfig.include_server_side_tool_invocations = true;
-          if (!googleRequest.tool_config) googleRequest.tool_config = {};
-          googleRequest.tool_config.include_server_side_tool_invocations = true;
-      }
   }
 
   return {
