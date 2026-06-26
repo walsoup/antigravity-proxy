@@ -504,9 +504,6 @@ You are pair programming with a USER to solve their coding task. The task may re
         googleRequest.toolConfig = {
             functionCallingConfig: { mode: "VALIDATED" }
         };
-        googleRequest.tool_config = {
-            function_calling_config: { mode: "VALIDATED" }
-        };
     }
   }
 
@@ -534,10 +531,8 @@ You are pair programming with a USER to solve their coding task. The task may re
           if (!googleRequest.toolConfig) googleRequest.toolConfig = {};
           googleRequest.toolConfig.include_server_side_tool_invocations = true;
           googleRequest.toolConfig.includeServerSideToolInvocations = true;
-
           if (!googleRequest.tool_config) googleRequest.tool_config = {};
           googleRequest.tool_config.include_server_side_tool_invocations = true;
-          googleRequest.tool_config.includeServerSideToolInvocations = true;
       }
   }
 
