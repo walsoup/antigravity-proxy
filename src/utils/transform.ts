@@ -407,7 +407,9 @@ You are pair programming with a USER to solve their coding task. The task may re
       };
   }
 
-  if (proxyConfig.features.googleSearchGrounding) {
+  const hasFunctions = body.tools && body.tools.some((t: any) => t.type === 'function') || body.functions && body.functions.length > 0;
+  
+  if (proxyConfig.features.googleSearchGrounding && (!hasFunctions || googleModel.includes("gemini-2"))) {
       const searchInstruction = "You have access to Google Search. Use it to find up-to-date information when necessary.";
       if (systemInstruction) {
           if (systemInstruction.parts && systemInstruction.parts[0]) {
