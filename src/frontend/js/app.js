@@ -1051,7 +1051,7 @@ async function sendChat() {
                                     innerHTML += `<div class="thinking-block" style="opacity: 0.7; font-size: 0.85rem; border-left: 2px solid var(--md-primary); padding-left: 8px; margin-bottom: 8px; font-style: italic;">${escapeHTML(reasoningText)}</div>`;
                                 }
                                 if (fullText) {
-                                    innerHTML += `<div>${escapeHTML(fullText)}</div>`;
+                                    innerHTML += `<div class="markdown-body">${DOMPurify.sanitize(marked.parse(fullText))}</div>`;
                                 }
                                 astContent.innerHTML = innerHTML || '<span class="pulse-ring" style="display:inline-block; margin-top: 4px;"></span>';
                                 history.scrollTop = history.scrollHeight;
@@ -1074,7 +1074,7 @@ async function sendChat() {
                 innerHTML += `<div class="thinking-block" style="opacity: 0.7; font-size: 0.85rem; border-left: 2px solid var(--md-primary); padding-left: 8px; margin-bottom: 8px; font-style: italic;">${escapeHTML(fullReasoningText)}</div>`;
             }
             if (fullResponseText) {
-                innerHTML += `<div>${escapeHTML(fullResponseText)}</div>`;
+                innerHTML += `<div class="markdown-body">${DOMPurify.sanitize(marked.parse(fullResponseText))}</div>`;
             }
             astContent.innerHTML = innerHTML || '<i>No response content</i>';
             history.scrollTop = history.scrollHeight;

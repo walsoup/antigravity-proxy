@@ -969,3 +969,47 @@ body {
 @media (max-width: 600px) {
   .metrics-grid { grid-template-columns: 1fr; }
 }
+
+/* Markdown Styles */
+.markdown-body {
+    font-family: inherit;
+    line-height: 1.6;
+}
+.markdown-body p {
+    margin-bottom: 0.8em;
+}
+.markdown-body p:last-child {
+    margin-bottom: 0;
+}
+.markdown-body a {
+    color: var(--md-tertiary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.markdown-body code {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+}
+.markdown-body pre {
+    background-color: var(--md-surface-variant);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 0.8em;
+}
+.markdown-body pre code {
+    background-color: transparent;
+    padding: 0;
+}
+.markdown-body ul, .markdown-body ol {
+    margin-bottom: 0.8em;
+    padding-left: 2em;
+}
+.markdown-body hr {
+    border: none;
+    border-top: 1px solid var(--md-outline-variant);
+    margin: 1em 0;
+}
