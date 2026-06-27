@@ -2,10 +2,13 @@
   "name": "antigravity-proxy",
   "version": "2.0.0",
   "module": "src/server.ts",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.9.3"
+  },
   "bin": {
     "antigravity-proxy": "./src/server.ts"
   },
-  "type": "module",
   "scripts": {
     "start": "bun run src/server.ts",
     "dev": "bun run --watch src/server.ts",
@@ -16,11 +19,5 @@
     "models": "bun run src/scripts/fetch-models.ts",
     "lint:html": "bun -e \"const c=await Bun.file('src/frontend/index.html').text(); try { new Function(c.match(/<script>([\\s\\S]*?)<\\/script>/)[1]) } catch(e) { console.error(e); process.exit(1) }\""
   },
-  "dependencies": {
-    "bun": "^1.0.0"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "typescript": "^5.9.3"
-  }
+  "type": "module"
 }
